@@ -13,25 +13,21 @@ import (
 )
 
 func main() {
-	for i := 15; i <= 18; i++ {
-		for _, pos := range positions {
-			fileName := fmt.Sprintf("weekly-proj-%s", pos)
-			if pos == "QB" {
-				fileName = "week-proj"
-			}
-			path := fmt.Sprintf(`nfl/%s (%d).csv`, fileName, i)
-			data, gw, err := readAndParseCsv(path)
-			if err != nil {
-				panic(fmt.Sprintf("error while handling csv file: %s\n", err))
-			}
-			json, err := csvToJson(data)
-			if err != nil {
-				panic(fmt.Sprintf("error while converting csv to json file: %s\n", err))
-			}
-			err = os.WriteFile(fmt.Sprintf("nfl-rotowire/%s_gameweek_%d.json", pos, gw), []byte(json), 0644)
-			if err != nil {
-				panic(fmt.Sprintf("error while writing json file: %s\n", err))
-			}
+	for i := 1; i <= 65; i++ {
+		path := fmt.Sprintf(`tmp/rotowire-cfb-projections (%d).csv`, i)
+		pos := positions[i%5]
+		data, gw, err := readAndParseCsv(path)
+		if err != nil {
+			panic(fmt.Sprintf("error while handling csv file: %s\n", err))
+		}
+
+		json, err := csvToJson(data)
+		if err != nil {
+			panic(fmt.Sprintf("error while converting csv to json file: %s\n", err))
+		}
+		err = os.WriteFile(fmt.Sprintf("rotowire/%s_gameweek_%d.json", pos, gw), []byte(json), 0644)
+		if err != nil {
+			panic(fmt.Sprintf("error while writing json file: %s\n", err))
 		}
 	}
 }
@@ -42,13 +38,12 @@ var positions = map[int]string{
 	2: "WR",
 	3: "TE",
 	4: "K",
-	5: "def",
 }
 
 func readAndParseCsv(path string) ([][]string, int, error) {
 	csvFile, err := os.Open(path)
 	if err != nil {
-		return nil, 0, fmt.Errorf("error opening %s", path)
+		return nil, 0, fmt.Errorf("error opening %s\n", path)
 	}
 
 	var rows [][]string
@@ -135,7 +130,7 @@ func csvToJson(rows [][]string) (string, error) {
 	}
 	bytes, err := json.MarshalIndent(projections, "", "	")
 	if err != nil {
-		return "", fmt.Errorf("marshal error %s", err)
+		return "", fmt.Errorf("Marshal error %s\n", err)
 	}
 
 	return string(bytes), nil
